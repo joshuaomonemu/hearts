@@ -11,9 +11,11 @@ type person struct {
 	Person userInfo `json:"person"`
 }
 type userInfo struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Blocked  string `json:"blocked"`
+	Firstname string `json:"firstname"`
+	Lastname  string `json:"lastname"`
+	Username  string `json:"username"`
+	Password  string `json:"password"`
+	Blocked   string `json:"blocked"`
 }
 
 //Renders Sign-Up Page
