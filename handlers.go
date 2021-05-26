@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"main.go/helpers"
 	"net/http"
 	"os"
 )
@@ -20,17 +21,13 @@ func signinAction(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 
 	userFile := "user/" + user + ".gojson"
-	reply, err := ioutil.ReadFile(userFile)
-
-	if err != nil {
-		http.Error(w, "Sorry couldnt read user files", 500)
-	}
+	reply := helpers.Reader(userFile)
 
 	//Map that stores values read from GOJSON
 	var passer map[string]interface{}
 
 	//Converting GOJSON values and storing in a MAP
-	err = json.Unmarshal(reply, &passer)
+	err := json.Unmarshal(reply, &passer)
 	if err != nil {
 		http.Error(w, "Couldn't read user file", 500)
 	}
@@ -41,23 +38,20 @@ func signinAction(w http.ResponseWriter, r *http.Request) {
 
 	//Check if user account  is blocked
 	block := passer["person"].(map[string]interface{})["blocked"]
-	accnt_block := fmt.Sprintf("%v", block)
+	acctBlock := fmt.Sprintf("%v", block)
 	//What happens if account is blocked
-	if accnt_block == "true" {
+	if acctBlock == "true" {
 		http.Redirect(w, r, "/error", http.StatusFound)
 		return
 	}
 
-	//Conditional statments to ensure struct values are thesame
+	//Conditional statements to ensure struct values are the same
 	if passField == password || userField == user {
 		http.Redirect(w, r, "/home", http.StatusFound)
 	} else {
 		w.Header().Set("Content-Type", "text/html")
 		io.WriteString(w, `<h1>Incorrect Password Or Username</h1>`)
 	}
-}
-func home(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "Thanks for loggin")
 }
 
 //
@@ -112,16 +106,17 @@ func signupAction(w http.ResponseWriter, r *http.Request) {
 	for _, list := range pn {
 		fileNames := string(list.Name())
 		s := []string{fileNames}
-		fmt.Println(s)
-		if helpers.contains(s, userFile) {
-
+		if helpers.Contains(s, userFile) {
+			http.Error(w, "This name already exits", 400)
+			return
 		}
 	}
+
 	//Creating file to write data into
 
 	_, err = os.Create(db)
 	if err != nil {
-		http.Error(w, "Cant't create user profile", 500)
+		http.Error(w, "Can't create user profile", 500)
 	}
 
 	//Write Username Details into user files
@@ -131,8 +126,18 @@ func signupAction(w http.ResponseWriter, r *http.Request) {
 	} else {
 		http.SetCookie(w, &http.Cookie{
 			Name:  "user_id",
-			Value: "vokes",
+			Value: user,
 		})
 		http.Redirect(w, r, "/home", http.StatusFound)
 	}
+}
+
+func renderUser(w http.ResponseWriter, r *http.Request) {
+	user, err := r.Cookie("user_id")
+	if err != nil {
+		io.WriteString(w, `<script>console.log('Sorry cookie does not exist')</script>`)
+		http.Redirect(w, r, "/signin", http.StatusMovedPermanently)
+	}
+	sup := fmt.Sprintf("%v")
+	userFile := user + ".gojson"
 }

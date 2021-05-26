@@ -48,6 +48,15 @@ func errorPage(w http.ResponseWriter, r *http.Request) {
 	tpl.Execute(w, nil)
 }
 
+//Rendering Home page after user login
+func home(w http.ResponseWriter, r *http.Request) {
+	tpl, _ := template.ParseFiles("templates/main.gohtml")
+	err := tpl.Execute(w, nil)
+	if err != nil {
+		return
+	}
+}
+
 func main() {
 	setupRoutes()
 	http.ListenAndServe(":2020", nil)
