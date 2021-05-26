@@ -1,7 +1,6 @@
 package main
 
 import (
-	helpers "https://github.com/joshuaomonemu/spades/utility/helper"
 	"encoding/json"
 	"fmt"
 	"io"
