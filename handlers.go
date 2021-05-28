@@ -6,12 +6,16 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"main.go/helpers"
 	"net/http"
 	"os"
+
+	"main.go/helpers"
 )
 
 //Handles Sign-in Request
+
+//Map that stores values read from GOJSON
+var passer map[string]interface{}
 
 func signinAction(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
@@ -23,14 +27,8 @@ func signinAction(w http.ResponseWriter, r *http.Request) {
 	userFile := "user/" + user + ".gojson"
 	reply := helpers.Reader(userFile)
 
-	//Map that stores values read from GOJSON
-	var passer map[string]interface{}
-
 	//Converting GOJSON values and storing in a MAP
-	err := json.Unmarshal(reply, &passer)
-	if err != nil {
-		http.Error(w, "Couldn't read user file", 500)
-	}
+	helpers.Unmarshal(reply, &passer)
 
 	//Check if username and password are valid
 	userField := passer["person"].(map[string]interface{})["username"]
@@ -138,6 +136,14 @@ func renderUser(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, `<script>console.log('Sorry cookie does not exist')</script>`)
 		http.Redirect(w, r, "/signin", http.StatusMovedPermanently)
 	}
-	sup := fmt.Sprintf("%v")
-	userFile := user + ".gojson"
+	sup := fmt.Sprintf("%v", user)
+	userFile := sup + ".gojson"
+
+	//Read User File
+
+	bs := helpers.Reader(userFile)
+
+	//Convert data that has been read in GOJSON to a map-interface
+	helpers.Unmarshal(bs, &passer)
+
 }

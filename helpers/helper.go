@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"log"
 )
@@ -20,4 +21,11 @@ func Reader(fl string) []byte {
 		log.Fatalln(err)
 	}
 	return ans
+}
+
+func Unmarshal(r []byte, p *map[string]interface{}) {
+	err := json.Unmarshal(r, p)
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
