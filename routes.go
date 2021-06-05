@@ -14,6 +14,7 @@ func setupRoutes() {
 	http.HandleFunc("/signin", sigin)
 	http.HandleFunc("/home", home)
 	http.HandleFunc("/error", errorPage)
+	http.HandleFunc("/main", renderUser)
 	//Handling Actions
 	http.HandleFunc("/signinAction", signinAction)
 	http.HandleFunc("/signupAction", signupAction)

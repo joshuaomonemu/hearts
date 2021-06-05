@@ -8,15 +8,15 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"text/template"
 
 	"main.go/helpers"
 )
 
-//Handles Sign-in Request
-
 //Map that stores values read from GOJSON
 var passer map[string]interface{}
 
+//Handles Sign-in Request
 func signinAction(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, "Bad Request", 400)
@@ -25,6 +25,18 @@ func signinAction(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 
 	userFile := "user/" + user + ".gojson"
+	//Checking if file exits before reading;
+	//Slice of string to store filesin directory
+	//Reading the user directory
+	fi, _ := ioutil.ReadDir("user/")
+	//Looping through to check
+	var f os.FileInfo
+	var sf string
+	for _, f = range fi {
+		sf = f.Name()
+	}
+	fmt.Println(sf)
+
 	reply := helpers.Reader(userFile)
 
 	//Converting GOJSON values and storing in a MAP
@@ -33,19 +45,24 @@ func signinAction(w http.ResponseWriter, r *http.Request) {
 	//Check if username and password are valid
 	userField := passer["person"].(map[string]interface{})["username"]
 	passField := passer["person"].(map[string]interface{})["password"]
-
-	//Check if user account  is blocked
 	block := passer["person"].(map[string]interface{})["blocked"]
+
+	//Converting needed values to strings
+
 	acctBlock := fmt.Sprintf("%v", block)
+
 	//What happens if account is blocked
 	if acctBlock == "true" {
 		http.Redirect(w, r, "/error", http.StatusFound)
 		return
 	}
-
 	//Conditional statements to ensure struct values are the same
-	if passField == password || userField == user {
-		http.Redirect(w, r, "/home", http.StatusFound)
+	if passField == password && userField == user {
+		http.SetCookie(w, &http.Cookie{
+			Name:  "user_id",
+			Value: user,
+		})
+		http.Redirect(w, r, "/main", http.StatusFound)
 	} else {
 		w.Header().Set("Content-Type", "text/html")
 		io.WriteString(w, `<h1>Incorrect Password Or Username</h1>`)
@@ -126,18 +143,20 @@ func signupAction(w http.ResponseWriter, r *http.Request) {
 			Name:  "user_id",
 			Value: user,
 		})
-		http.Redirect(w, r, "/home", http.StatusFound)
+		http.Redirect(w, r, "/main", http.StatusFound)
 	}
 }
 
 func renderUser(w http.ResponseWriter, r *http.Request) {
 	user, err := r.Cookie("user_id")
 	if err != nil {
-		io.WriteString(w, `<script>console.log('Sorry cookie does not exist')</script>`)
 		http.Redirect(w, r, "/signin", http.StatusMovedPermanently)
+		return
 	}
-	sup := fmt.Sprintf("%v", user)
-	userFile := sup + ".gojson"
+	//Cookie Value
+	cv := user.Value
+
+	userFile := "user/" + cv + ".gojson"
 
 	//Read User File
 
@@ -145,5 +164,28 @@ func renderUser(w http.ResponseWriter, r *http.Request) {
 
 	//Convert data that has been read in GOJSON to a map-interface
 	helpers.Unmarshal(bs, &passer)
+	fname := passer["person"].(map[string]interface{})["firstname"]
+	lname := passer["person"].(map[string]interface{})["lastname"]
+	uname := passer["person"].(map[string]interface{})["username"]
+
+	//Converting values to string to store in a struct
+	firstname := fmt.Sprintf("%v", fname)
+	lastname := fmt.Sprintf("%v", lname)
+	username := fmt.Sprintf("%v", uname)
+
+	//Storing Read values in struct to pass into template
+	user_details := &person{
+		userInfo{
+			Firstname: firstname,
+			Lastname:  lastname,
+			Username:  username,
+		},
+	}
+	fmt.Println(firstname)
+	tpl, err := template.ParseFiles("templates/main.gohtml")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	tpl.Execute(w, user_details)
 
 }
