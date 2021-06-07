@@ -18,5 +18,9 @@ func setupRoutes() {
 	//Handling Actions
 	http.HandleFunc("/signinAction", signinAction)
 	http.HandleFunc("/signupAction", signupAction)
-	//Start Server
+	http.HandleFunc("/logout", logOut)
+
+	// 404 page
+	//http.HandleFunc("/", notFound)
+
 }

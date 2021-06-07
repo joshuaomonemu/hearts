@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"text/template"
 
 	"main.go/helpers"
@@ -26,16 +27,24 @@ func signinAction(w http.ResponseWriter, r *http.Request) {
 
 	userFile := "user/" + user + ".gojson"
 	//Checking if file exits before reading;
-	//Slice of string to store filesin directory
+
 	//Reading the user directory
 	fi, _ := ioutil.ReadDir("user/")
 	//Looping through to check
+
+	//Variables to use while looping
 	var f os.FileInfo
 	var sf string
 	for _, f = range fi {
 		sf = f.Name()
+		fmt.Println(sf)
 	}
-	fmt.Println(sf)
+	rep := strings.Contains(userFile, sf)
+	fmt.Println(rep)
+	if rep == true {
+		http.Error(w, "Cannot find userfile", http.StatusMovedPermanently)
+		return
+	}
 
 	reply := helpers.Reader(userFile)
 
@@ -47,7 +56,7 @@ func signinAction(w http.ResponseWriter, r *http.Request) {
 	passField := passer["person"].(map[string]interface{})["password"]
 	block := passer["person"].(map[string]interface{})["blocked"]
 
-	//Converting needed values to strings
+	//Converting needed values to string
 
 	acctBlock := fmt.Sprintf("%v", block)
 
@@ -58,10 +67,11 @@ func signinAction(w http.ResponseWriter, r *http.Request) {
 	}
 	//Conditional statements to ensure struct values are the same
 	if passField == password && userField == user {
-		http.SetCookie(w, &http.Cookie{
+		c := &http.Cookie{
 			Name:  "user_id",
 			Value: user,
-		})
+		}
+		http.SetCookie(w, c)
 		http.Redirect(w, r, "/main", http.StatusFound)
 	} else {
 		w.Header().Set("Content-Type", "text/html")
@@ -174,18 +184,34 @@ func renderUser(w http.ResponseWriter, r *http.Request) {
 	username := fmt.Sprintf("%v", uname)
 
 	//Storing Read values in struct to pass into template
-	user_details := &person{
+	user_details := person{
 		userInfo{
 			Firstname: firstname,
 			Lastname:  lastname,
 			Username:  username,
 		},
 	}
-	fmt.Println(firstname)
+	//fmt.Println(firstname)
 	tpl, err := template.ParseFiles("templates/main.gohtml")
 	if err != nil {
 		log.Fatalln(err)
 	}
-	tpl.Execute(w, user_details)
+	tpl.Execute(w, user_details.Person)
 
 }
+func logOut(w http.ResponseWriter, r *http.Request) {
+	c := http.Cookie{
+		Name:   "user_id",
+		MaxAge: -1}
+	http.SetCookie(w, &c)
+
+	http.Redirect(w, r, "/", http.StatusFound)
+}
+
+//404 Page
+func lostPage(w http.ResponseWriter, r *http.Request) {
+	t, _ := template.ParseFiles("templates/pages/404-page.gohtml")
+	t.Execute(w, nil)
+}
+
+//End 404 page
