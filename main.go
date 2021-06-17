@@ -16,12 +16,14 @@ type userInfo struct {
 	Username  string `json:"username"`
 	Password  string `json:"password"`
 	Blocked   string `json:"blocked"`
+	Location string `json:"location"`
+	Email string `json:"email"`
 }
 
 //Renders Sign-Up Page
 
 func signup(w http.ResponseWriter, r *http.Request) {
-	tpl, err := template.ParseFiles("templates/pages/sign-up.gohtml")
+	tpl, err := template.ParseFiles("app/sign-up.gohtml")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -31,7 +33,7 @@ func signup(w http.ResponseWriter, r *http.Request) {
 //Rendering Sign-In Page
 
 func sigin(w http.ResponseWriter, r *http.Request) {
-	tpl, err := template.ParseFiles("templates/pages/sign-in.gohtml")
+	tpl, err := template.ParseFiles("app/sign-in.gohtml")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -41,22 +43,12 @@ func sigin(w http.ResponseWriter, r *http.Request) {
 //Rendering Error Page
 
 func errorPage(w http.ResponseWriter, r *http.Request) {
-	tpl, err := template.ParseFiles("templates/pages/404-page.gohtml")
+	tpl, err := template.ParseFiles("app/404-page.gohtml")
 	if err != nil {
 		log.Fatalln(err)
 	}
 	tpl.Execute(w, nil)
 }
-
-//Rendering Home page after user login
-func home(w http.ResponseWriter, r *http.Request) {
-	tpl, _ := template.ParseFiles("templates/main.gohtml")
-	err := tpl.Execute(w, nil)
-	if err != nil {
-		return
-	}
-}
-
 func main() {
 	setupRoutes()
 	http.ListenAndServe(":2020", nil)

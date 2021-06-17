@@ -1,0 +1,9 @@
+{
+    "person": {
+        "firstname": "joshua",
+        "lastname": "john",
+        "username": "spades_25",
+        "password": "josh",
+        "blocked": "true"
+    }
+}

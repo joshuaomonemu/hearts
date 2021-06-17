@@ -1,1 +1,9 @@
-{"person":{"firstname":"James","lastname":"Vasquez","username":"jam_vaz24","password":"1234dog","blocked":"true"}}
+{
+    "person": {
+        "firstname": "James",
+        "lastname": "Vasquez",
+        "username": "jam_vaz24",
+        "password": "1234dog",
+        "blocked": "true"
+    }
+}

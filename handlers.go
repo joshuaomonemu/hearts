@@ -11,11 +11,26 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/gorilla/websocket"
 	"main.go/helpers"
 )
 
 //Map that stores values read from GOJSON
 var passer map[string]interface{}
+
+//Varibales for websockets
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
+//Struct for messages
+type msg struct {
+    rep string
+}
+//Struct for storing messages
+type messages struct{
+	
+}
 
 //Handles Sign-in Request
 func signinAction(w http.ResponseWriter, r *http.Request) {
@@ -79,8 +94,6 @@ func signinAction(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//
-
 //Handles Sign-up Request
 func signupAction(w http.ResponseWriter, r *http.Request) {
 
@@ -91,6 +104,12 @@ func signupAction(w http.ResponseWriter, r *http.Request) {
 	lname := r.FormValue("lastname")
 	user := r.FormValue("username")
 	pass := r.FormValue("password")
+
+	// _, mfh, _ := r.FormFile("img")
+
+	// filesize := mfh.Size
+	// ss := strconv.FormatInt(filesize, 64)
+	// fmt.Println(ss + "this is the size of the file")
 
 	//Sanitizing Form Values
 	if fname == "" || lname == "" {
@@ -157,6 +176,7 @@ func signupAction(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//Renders user page with information
 func renderUser(w http.ResponseWriter, r *http.Request) {
 	user, err := r.Cookie("user_id")
 	if err != nil {
@@ -192,26 +212,68 @@ func renderUser(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 	//fmt.Println(firstname)
-	tpl, err := template.ParseFiles("templates/main.gohtml")
+	tpl, err := template.ParseFiles("app/index.gohtml")
 	if err != nil {
 		log.Fatalln(err)
 	}
 	tpl.Execute(w, user_details.Person)
 
 }
+
+//handle logging out
 func logOut(w http.ResponseWriter, r *http.Request) {
 	c := http.Cookie{
 		Name:   "user_id",
 		MaxAge: -1}
 	http.SetCookie(w, &c)
-
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 //404 Page
 func lostPage(w http.ResponseWriter, r *http.Request) {
-	t, _ := template.ParseFiles("templates/pages/404-page.gohtml")
-	t.Execute(w, nil)
+	tpl, _ := template.ParseFiles("app/404-page.gohtml")
+	tpl.Execute(w, nil)
 }
 
-//End 404 page
+//Websocket for chat system
+
+func wsEndpoint(w http.ResponseWriter, r *http.Request) {
+	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println(err)
+	}
+
+	log.Println("Client connected sucessfully...")
+	reader(ws)
+}
+
+func reader(conn *websocket.Conn) {
+	for {
+		messageType, p, err := conn.ReadMessage()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		log.Println(string(p))
+
+		if err := conn.WriteMessage(messageType, p); err != nil {
+			log.Println(err)
+			return
+		}
+
+		v := msg{}
+		m :=v.rep
+        err = conn.ReadJSON(&m)
+        if err != nil {
+            fmt.Println("Error reading json.", err)
+        }
+
+        fmt.Printf("Got message: %#v\n", m)
+		fmt.Println(m)
+        if err = conn.WriteJSON(m); err != nil {
+            fmt.Println(err)
+        }
+	}
+}

@@ -5,5 +5,15 @@
         "username": "Noah24",
         "password": "pass24",
         "blocked": "true"
-    }
+    },
+    "msg": [
+
+        {
+            "id": "kdfadas",
+            "content": "This is a boy",
+            "time": 12345678,
+            "sender": "vokes",
+            "receiver": "spades"
+        }
+    ]
 }
