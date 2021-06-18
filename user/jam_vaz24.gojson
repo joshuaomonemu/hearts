@@ -4,6 +4,6 @@
         "lastname": "Vasquez",
         "username": "jam_vaz24",
         "password": "1234dog",
-        "blocked": "true"
+        "blocked": "false"
     }
 }

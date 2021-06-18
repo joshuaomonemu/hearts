@@ -40,6 +40,8 @@ function getCookie(cname) {
 }
 
 function help() {
+    let audio = new Audio('../sounds/alert.mp3');
+    audio.play();
     let content = document.getElementById("msg").value;
     let userId = getCookie("user_id");
     let msgContainer = document.querySelector("#msg-container");

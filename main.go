@@ -9,6 +9,7 @@ import (
 //Struct For User Details
 type person struct {
 	Person userInfo `json:"person"`
+	//Messages chatMsg `json:"messages"`
 }
 type userInfo struct {
 	Firstname string `json:"firstname"`
@@ -20,6 +21,16 @@ type userInfo struct {
 	Email string `json:"email"`
 }
 
+//Struct For Messages, Friends, and Other lists 
+
+//Struct For messages 
+type chatMsg struct{
+	Id string `json: "id"`
+	Content string `json: "content"`
+	senderId string`json: "senderId"`
+	Receiverid string`json: "receiverId"`
+	Timestamp int `json: "timestamp"`
+}
 //Renders Sign-Up Page
 
 func signup(w http.ResponseWriter, r *http.Request) {
